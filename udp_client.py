@@ -1,48 +1,37 @@
 import socket
 import time
 import matplotlib.pyplot as plt
-from datetime import datetime
-from sys import getsizeof
 import struct
- 
+from ctypes import *
 
-msgFromClient       = list(range(0,256))
+Server_add = "192.168.1.2"
+Server_port = 20001
+serverAddressPort   = (Server_add,Server_port)
 
-#bytesToSend         = str.encode(msgFromClient)
-#bytesToSend = struct.pack('<50f',*msgFromClient)
-print(msgFromClient)
-size = getsizeof(bytesToSend)
-print(size)
-serverAddressPort   = ("192.168.1.2", 20001)
-
-bufferSize          = 1024
-i = 0
-
- 
-
-# Create a UDP socket at client side
+msgFromClient       = list(range(0,64))
+array_len = len(msgFromClient)
+print(array_len)
+Int32Array = c_uint32 * array_len
 
 UDPClientSocket = socket.socket(family=socket.AF_INET, type=socket.SOCK_DGRAM)
 latency = []
- 
+iterator = 0
 
-# Send to server using created UDP socket
-while i<1000:
-    #print(i)
+while iterator <= 1000:
+
     temp1 =  time.clock()
-    #UDPClientSocket.sendto(bytesToSend, serverAddressPort)
-    msgFromServer = UDPClientSocket.recvfrom(bufferSize)
-    latency.append((time.clock()-temp1)/size)
-    msg = "Message from Server {}".format(msgFromServer[0])
-    #data = struct.unpack('<50f',msgFromServer[0])
-    print(msg)
-    #print(latency[i])
-    i = i +1
-#print(latency)
+    UDPClientSocket.sendto(Int32Array(*msgFromClient), serverAddressPort)
+    msgFromServer = UDPClientSocket.recvfrom(1024)
+    latency.append((time.clock()-temp1))
+    print('server:')
+    print(list(Int32Array.from_buffer_copy(msgFromServer[0])))
+    iterator += 1
+    
+
 fig = plt.figure()
 plt.hist(latency,bins=20)
-fig.suptitle('Latency histogram')
+print('Latency histogram ('+str(array_len*4)+')')
+fig.suptitle('Latency histogram ('+str(array_len*4)+' bytes)')
 plt.xlabel('Latency time(s)')
 plt.ylabel('Frequency')
 plt.show()
-#fig.savefig('test.jpg')
