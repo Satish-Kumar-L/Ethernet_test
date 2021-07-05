@@ -1,4 +1,3 @@
-// Server side implementation of UDP client-server model
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
@@ -11,28 +10,21 @@
 #define PORT     20001
 #define MAXLINE 1024
   
-// Driver code
+
 int main() {
     int sockfd;
-    char buffer[MAXLINE];
-    char *hello = "Hello from server";
+    int buffer[MAXLINE];
     struct sockaddr_in servaddr, cliaddr;
-      
-    // Creating socket file descriptor
+    printf("size: %ld\n",sizeof(int));
     if ( (sockfd = socket(AF_INET, SOCK_DGRAM, 0)) < 0 ) {
         perror("socket creation failed");
         exit(EXIT_FAILURE);
     }
-      
-    memset(&servaddr, 0, sizeof(servaddr));
-    memset(&cliaddr, 0, sizeof(cliaddr));
-      
-    // Filling server information
-    servaddr.sin_family    = AF_INET; // IPv4
+            
+    servaddr.sin_family    = AF_INET; 
     servaddr.sin_addr.s_addr = INADDR_ANY;
     servaddr.sin_port = htons(PORT);
       
-    // Bind the socket with the server address
     if ( bind(sockfd, (const struct sockaddr *)&servaddr, 
             sizeof(servaddr)) < 0 )
     {
@@ -42,17 +34,18 @@ int main() {
       
     int len, n;
   
-    len = sizeof(cliaddr);  //len is value/resuslt
+    len = sizeof(cliaddr);  
+    while(1)
+{
   
-    n = recvfrom(sockfd, (char *)buffer, MAXLINE, 
+    n = recvfrom(sockfd, &buffer, 256*sizeof(int), 
                 MSG_WAITALL, ( struct sockaddr *) &cliaddr,
                 &len);
-    buffer[n] = '\0';
-    printf("Client : %s\n", buffer);
-    sendto(sockfd, (const char *)hello, strlen(hello), 
+    printf("Client : %d %d %d\n", buffer[10],buffer[54],buffer[92]);
+    sendto(sockfd, &buffer, 256*sizeof(int), 
         MSG_CONFIRM, (const struct sockaddr *) &cliaddr,
             len);
-    printf("Hello message sent.\n"); 
-      
+    printf("Acknowledged\n"); 
+  }   
     return 0;
 }
